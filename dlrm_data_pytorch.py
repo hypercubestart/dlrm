@@ -71,7 +71,7 @@ class CriteoDataset(Dataset):
             days = 7
             out_file = "kaggleAdDisplayChallenge_processed"
         elif dataset == "terabyte":
-            days = 24
+            days = 3
             out_file = "terabyte_processed"
         else:
             raise(ValueError("Data set option is not supported"))
@@ -371,9 +371,9 @@ def ensure_dataset_preprocessed(args, d_path):
 
         train_files = ['{}_{}_reordered.npz'.format(args.raw_data_file, day)
                        for
-                       day in range(0, 23)]
+                       day in range(0, 2)]
 
-        test_valid_file = args.raw_data_file + '_23_reordered.npz'
+        test_valid_file = args.raw_data_file + '_2_reordered.npz'
 
         output_file = d_path + '_{}.bin'.format(split)
 
@@ -506,7 +506,7 @@ def make_criteo_data_and_loaders(args, offset_to_length_converter=False):
             train_loader = data_loader_terabyte.DataLoader(
                 data_directory=data_directory,
                 data_filename=data_filename,
-                days=list(range(23)),
+                days=list(range(2)),
                 batch_size=args.mini_batch_size,
                 max_ind_range=args.max_ind_range,
                 split="train"
@@ -515,7 +515,7 @@ def make_criteo_data_and_loaders(args, offset_to_length_converter=False):
             test_loader = data_loader_terabyte.DataLoader(
                 data_directory=data_directory,
                 data_filename=data_filename,
-                days=[23],
+                days=[2],
                 batch_size=args.test_mini_batch_size,
                 max_ind_range=args.max_ind_range,
                 split="test"
