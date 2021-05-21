@@ -1825,7 +1825,7 @@ def run():
         )
         all_inputs = ["dense_x"] + o_inputs + i_inputs
         # debug prints
-        print("inputs", all_inputs)
+        # print("inputs", all_inputs)
 
         # create dynamic_axis dictionaries
         do_inputs = (
@@ -1848,7 +1848,7 @@ def run():
         for di in di_inputs:
             dynamic_axes.update(di)
         # debug prints
-        print(dynamic_axes)
+        # print(dynamic_axes)
         # export model
         torch.onnx.export(
             dlrm,

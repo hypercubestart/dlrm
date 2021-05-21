@@ -121,6 +121,8 @@ def processCriteoAdData(d_path, d_file, npzfile, i, convertDicts, pre_comp_count
     #   i (int): splits in the dataset (typically 0 to 7 or 0 to 24)
 
     # process data if not all files exist
+    import pdb
+    pdb.set_trace()
     filename_i = npzfile + "_{0}_processed.npz".format(i)
 
     if path.exists(filename_i):
@@ -596,7 +598,7 @@ def concatCriteoAdData(
                 if total_per_file[i] != size:
                     sys.exit("ERROR: sanity check on number of samples failed")
                 # debug prints
-                print("Reordering (1st pass) " + filename_i)
+                # print("Reordering (1st pass) " + filename_i)
 
                 # create buckets using sampling of random ints
                 # from (discrete) uniform distribution
@@ -1020,33 +1022,33 @@ def getCriteoAdData(
                     # debug prints
                     if float(i)/num_data_in_split*100 > percent+1:
                         percent = int(float(i)/num_data_in_split*100)
-                        print(
-                            "Load %d/%d (%d%%) Split: %d  Label True: %d  Stored: %d"
-                            % (
-                                i,
-                                num_data_in_split,
-                                percent,
-                                split,
-                                target,
-                                y[i],
-                            ),
-                            end="\n",
-                        )
+                        # print(
+                        #     "Load %d/%d (%d%%) Split: %d  Label True: %d  Stored: %d"
+                        #     % (
+                        #         i,
+                        #         num_data_in_split,
+                        #         percent,
+                        #         split,
+                        #         target,
+                        #         y[i],
+                        #     ),
+                        #     end="\n",
+                        # )
                 else:
                     for j in range(26):
                         convertDicts[j][X_cat[i][j]] = 1
                     # debug prints
-                    print(
-                        "Load %d/%d  Split: %d  Label True: %d  Stored: %d"
-                        % (
-                            i,
-                            num_data_in_split,
-                            split,
-                            target,
-                            y[i],
-                        ),
-                        end="\r",
-                    )
+                    # print(
+                    #     "Load %d/%d  Split: %d  Label True: %d  Stored: %d"
+                    #     % (
+                    #         i,
+                    #         num_data_in_split,
+                    #         split,
+                    #         target,
+                    #         y[i],
+                    #     ),
+                    #     end="\r",
+                    # )
                 i += 1
 
             # store num_data_in_split samples or extras at the end of file
