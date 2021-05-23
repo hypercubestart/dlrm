@@ -121,15 +121,13 @@ def processCriteoAdData(d_path, d_file, npzfile, i, convertDicts, pre_comp_count
     #   i (int): splits in the dataset (typically 0 to 7 or 0 to 24)
 
     # process data if not all files exist
-    import pdb
-    pdb.set_trace()
     filename_i = npzfile + "_{0}_processed.npz".format(i)
 
     if path.exists(filename_i):
         print("Using existing " + filename_i, end="\n")
     else:
         print("Not existing " + filename_i)
-        with np.load(npzfile + "_{0}.npz".format(i)) as data:
+        with np.load(npzfile + "_{0}.npz".format(i), 'r') as data:
             # categorical features
             '''
             # Approach 1a: using empty dictionaries
@@ -146,8 +144,10 @@ def processCriteoAdData(d_path, d_file, npzfile, i, convertDicts, pre_comp_count
             # Approach 2a: using pre-computed dictionaries
             X_cat_t = np.zeros(data["X_cat_t"].shape)
             for j in range(26):
+                print(j, " started")
                 for k, x in enumerate(data["X_cat_t"][j, :]):
                     X_cat_t[j, k] = convertDicts[j][x]
+                print(j, " finished")
             # continuous features
             X_int = data["X_int"]
             X_int[X_int < 0] = 0
@@ -203,7 +203,7 @@ def concatCriteoAdData(
         # tot_fea = tad_fea + spa_fea
         # create offset per file
         offset_per_file = np.array([0] + [x for x in total_per_file])
-        for i in range(days):
+        for i in days:
             offset_per_file[i + 1] += offset_per_file[i]
 
         '''
@@ -558,7 +558,7 @@ def concatCriteoAdData(
         # 1st pass of FYR shuffle
         # check if data already exists
         recreate_flag = False
-        for j in range(days):
+        for j in days:
             filename_j_y = npzfile + "_{0}_intermediate_y.npy".format(j)
             filename_j_d = npzfile + "_{0}_intermediate_d.npy".format(j)
             filename_j_s = npzfile + "_{0}_intermediate_s.npy".format(j)
@@ -578,7 +578,7 @@ def concatCriteoAdData(
         # reorder across buckets using sampling
         if recreate_flag:
             # init intermediate files (.npy appended automatically)
-            for j in range(days):
+            for j in days:
                 filename_j_y = npzfile + "_{0}_intermediate_y".format(j)
                 filename_j_d = npzfile + "_{0}_intermediate_d".format(j)
                 filename_j_s = npzfile + "_{0}_intermediate_s".format(j)
@@ -586,8 +586,8 @@ def concatCriteoAdData(
                 np.save(filename_j_d, np.zeros((total_per_file[j], den_fea)))
                 np.save(filename_j_s, np.zeros((total_per_file[j], spa_fea)))
             # start processing files
-            total_counter = [0] * days
-            for i in range(days):
+            total_counter = [0] * len(days)
+            for i in days:
                 filename_i = npzfile + "_{0}_processed.npz".format(i)
                 with np.load(filename_i) as data:
                     X_cat = data["X_cat"]
@@ -603,20 +603,20 @@ def concatCriteoAdData(
                 # create buckets using sampling of random ints
                 # from (discrete) uniform distribution
                 buckets = []
-                for _j in range(days):
+                for _j in days:
                     buckets.append([])
-                counter = [0] * days
-                days_to_sample = days if data_split == "none" else days - 1
+                counter = [0] * len(days)
+                days_to_sample = len(days) if data_split == "none" else len(days) - 1
                 if randomize == "total":
-                    rand_u = np.random.randint(low=0, high=days_to_sample, size=size)
+                    rand_u = 0 # np.random.randint(low=0, high=days_to_sample, size=size)
                     for k in range(size):
                         # sample and make sure elements per buckets do not overflow
-                        if data_split == "none" or i < days - 1:
+                        if data_split == "none" or i < len(days) - 1:
                             # choose bucket
                             p = rand_u[k]
                             # retry of the bucket is full
                             while total_counter[p] + counter[p] >= total_per_file[p]:
-                                p = np.random.randint(low=0, high=days_to_sample)
+                                p = 0 # np.random.randint(low=0, high=days_to_sample)
                         else:  # preserve the last day/bucket if needed
                             p = i
                         buckets[p].append(k)
@@ -624,7 +624,7 @@ def concatCriteoAdData(
                 else:  # randomize is day or none
                     for k in range(size):
                         # do not sample, preserve the data in this bucket
-                        p = i
+                        p = 0
                         buckets[p].append(k)
                         counter[p] += 1
 
@@ -638,7 +638,7 @@ def concatCriteoAdData(
                 # print(total_counter)
 
                 # partially feel the buckets
-                for j in range(days):
+                for j in days:
                     filename_j_y = npzfile + "_{0}_intermediate_y.npy".format(j)
                     filename_j_d = npzfile + "_{0}_intermediate_d.npy".format(j)
                     filename_j_s = npzfile + "_{0}_intermediate_s.npy".format(j)
@@ -673,7 +673,7 @@ def concatCriteoAdData(
 
         # 2nd pass of FYR shuffle
         # check if data already exists
-        for j in range(days):
+        for j in days:
             filename_j = npzfile + "_{0}_reordered.npz".format(j)
             if path.exists(filename_j):
                 print("Using existing " + filename_j)
@@ -681,7 +681,7 @@ def concatCriteoAdData(
                 recreate_flag = True
         # reorder within buckets
         if recreate_flag:
-            for j in range(days):
+            for j in days:
                 filename_j_y = npzfile + "_{0}_intermediate_y.npy".format(j)
                 filename_j_d = npzfile + "_{0}_intermediate_d.npy".format(j)
                 filename_j_s = npzfile + "_{0}_intermediate_s.npy".format(j)
@@ -691,7 +691,7 @@ def concatCriteoAdData(
 
                 indices = range(total_per_file[j])
                 if randomize == "day" or randomize == "total":
-                    if data_split == "none" or j < days - 1:
+                    if data_split == "none" or j < len(days) - 1:
                         indices = np.random.permutation(range(total_per_file[j]))
 
                 filename_r = npzfile + "_{0}_reordered.npz".format(j)
@@ -727,7 +727,7 @@ def concatCriteoAdData(
         print("Concatenating multiple days into %s.npz file" % str(d_path + o_filename))
 
         # load and concatenate data
-        for i in range(days):
+        for i in days:
             filename_i = npzfile + "_{0}_processed.npz".format(i)
             with np.load(filename_i) as data:
                 if i == 0:
@@ -880,7 +880,7 @@ def getCriteoAdData(
         o_filename,
         max_ind_range=-1,
         sub_sample_rate=0.0,
-        days=7,
+        days=[23],
         data_split='train',
         randomize='total',
         criteo_kaggle=True,
@@ -926,8 +926,8 @@ def getCriteoAdData(
                         total_count += 1
                 total_per_file.append(total_count)
                 # reset total per file due to split
-                num_data_per_split, extras = divmod(total_count, days)
-                total_per_file = [num_data_per_split] * days
+                num_data_per_split, extras = divmod(total_count, len(days))
+                total_per_file = [num_data_per_split] * len(days)
                 for j in range(extras):
                     total_per_file[j] += 1
                 # split into days (simplifies code later on)
@@ -950,7 +950,8 @@ def getCriteoAdData(
             # Each line in the file is a sample, consisting of 13 continuous and
             # 26 categorical features (an extra space indicates that feature is
             # missing and will be interpreted as 0).
-            for i in range(days):
+            total_per_file = [0] * 24
+            for i in days:
                 datafile_i = datafile + "_" + str(i)  # + ".gz"
                 if path.exists(str(datafile_i)):
                     print("Reading data from path=%s" % (str(datafile_i)))
@@ -959,7 +960,7 @@ def getCriteoAdData(
                     with open(str(datafile_i)) as f:
                         for _ in f:
                             total_per_file_count += 1
-                    total_per_file.append(total_per_file_count)
+                    total_per_file[i] = total_per_file_count
                     total_count += total_per_file_count
                 else:
                     sys.exit("ERROR: Criteo Terabyte Dataset path is invalid; please download from https://labs.criteo.com/2013/12/download-terabyte-click-logs")
@@ -1084,7 +1085,7 @@ def getCriteoAdData(
     # WARNING: to get reproducable sub-sampling results you must reset the seed below
     # np.random.seed(123)
     # in this case there is a single split in each day
-    for i in range(days):
+    for i in days:
         npzfile_i = npzfile + "_{0}.npz".format(i)
         npzfile_p = npzfile + "_{0}_processed.npz".format(i)
         if path.exists(npzfile_i):
@@ -1108,7 +1109,7 @@ def getCriteoAdData(
                                        convertDictsDay,
                                        resultDay,
                                        )
-                                 ) for i in range(0, days)]
+                                 ) for i in (0, days)]
             for process in processes:
                 process.start()
             for process in processes:
@@ -1121,7 +1122,7 @@ def getCriteoAdData(
                     for j in convertDicts_tmp[i]:
                         convertDicts[i][j] = 1
         else:
-            for i in range(days):
+            for i in days:
                 total_per_file[i] = process_one_file(
                     npzfile + "_{0}".format(i),
                     npzfile,
@@ -1184,7 +1185,7 @@ def getCriteoAdData(
             process.join()
 
     else:
-        for i in range(days):
+        for i in days:
             processCriteoAdData(d_path, d_file, npzfile, i, convertDicts, counts)
 
     o_file = concatCriteoAdData(
@@ -1194,7 +1195,7 @@ def getCriteoAdData(
         trafile,
         days,
         data_split,
-        randomize,
+        "none",  # randomize,
         total_per_file,
         total_count,
         memory_map,

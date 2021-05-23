@@ -772,7 +772,8 @@ def inference(
         X_test, lS_o_test, lS_i_test, T_test, W_test, CBPP_test = unpack_batch(
             testBatch
         )
-
+        import pdb
+        pdb.set_trace()
         # Skip the batch if batch size not multiple of total ranks
         if ext_dist.my_size > 1 and X_test.size(0) % ext_dist.my_size != 0:
             print("Warning: Skiping the batch %d with size %d" % (i, X_test.size(0)))
@@ -1079,12 +1080,12 @@ def run():
         mlperf_logger.barrier()
 
     if args.data_generation == "dataset":
-        train_data, train_ld, test_data, test_ld = dp.make_criteo_data_and_loaders(args)
-        table_feature_map = {idx: idx for idx in range(len(train_data.counts))}
-        nbatches = args.num_batches if args.num_batches > 0 else len(train_ld)
+        # train_data, train_ld, test_data, test_ld = dp.make_criteo_data_and_loaders(args)
+        test_data, test_ld = dp.make_criteo_data_and_loaders(args)
+        # table_feature_map = {idx: idx for idx in range(len(train_data.counts))}
+        nbatches = 0 # args.num_batches if args.num_batches > 0 else len(train_ld)
         nbatches_test = len(test_ld)
-
-        ln_emb = train_data.counts
+        ln_emb = [9980333, 36084, 17217, 7378, 20134, 3, 7112, 1442, 61, 9758201, 1333352, 313829, 10, 2208, 11156, 122, 4, 970, 14, 9994222, 7267859, 9946608, 415421, 12420, 101, 36]
         # enforce maximum limit on number of vectors per embedding
         if args.max_ind_range > 0:
             ln_emb = np.array(
@@ -1097,7 +1098,7 @@ def run():
             )
         else:
             ln_emb = np.array(ln_emb)
-        m_den = train_data.m_den
+        m_den = test_data.m_den
         ln_bot[0] = m_den
     else:
         # input and target at random
