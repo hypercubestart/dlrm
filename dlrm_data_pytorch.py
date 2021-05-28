@@ -71,7 +71,7 @@ class CriteoDataset(Dataset):
             days = list(range(0, 7))
             out_file = "kaggleAdDisplayChallenge_processed"
         elif dataset == "terabyte":
-            days = [23]
+            days = [0]
             out_file = "terabyte_processed"
         else:
             raise(ValueError("Data set option is not supported"))
@@ -139,8 +139,8 @@ class CriteoDataset(Dataset):
                 self.max_day_range = days if split == 'none' else days - 1
             elif split == 'test' or split == 'val':
                 self.day = days
-                num_samples = self.offset_per_file[24] - \
-                              self.offset_per_file[24 - 1]
+                num_samples = self.offset_per_file[1] - \
+                              self.offset_per_file[0]
                 self.test_size = num_samples # int(np.ceil(num_samples / 2.))
                 self.val_size = num_samples - self.test_size
             else:
@@ -515,7 +515,7 @@ def make_criteo_data_and_loaders(args, offset_to_length_converter=False):
             test_loader = data_loader_terabyte.DataLoader(
                 data_directory=data_directory,
                 data_filename=data_filename,
-                days=[23],
+                days=[0],
                 batch_size=args.test_mini_batch_size,
                 max_ind_range=args.max_ind_range,
                 split="test"

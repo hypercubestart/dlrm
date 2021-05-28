@@ -880,7 +880,7 @@ def getCriteoAdData(
         o_filename,
         max_ind_range=-1,
         sub_sample_rate=0.0,
-        days=[23],
+        days=[0],
         data_split='train',
         randomize='total',
         criteo_kaggle=True,
@@ -1139,10 +1139,15 @@ def getCriteoAdData(
     print("Divided into days/splits:\n", total_per_file)
 
     # dictionary files
+    # import pickle
+    # with open(f'convertDicts23.pickle', 'rb') as handle:
+    #   convertDicts = pickle.load(handle)
     counts = np.zeros(26, dtype=np.int32)
     if recreate_flag:
         # create dictionaries
         for j in range(26):
+            # import pdb
+            # pdb.set_trace()
             for i, x in enumerate(convertDicts[j]):
                 convertDicts[j][x] = i
             dict_file_j = d_path + d_file + "_fea_dict_{0}.npz".format(j)
@@ -1188,6 +1193,7 @@ def getCriteoAdData(
         for i in days:
             processCriteoAdData(d_path, d_file, npzfile, i, convertDicts, counts)
 
+    exit(1)
     o_file = concatCriteoAdData(
         d_path,
         d_file,
