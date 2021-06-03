@@ -444,8 +444,33 @@ class DLRM_Net(nn.Module):
                     sparse_offset_group_batch,
                     per_sample_weights=per_sample_weights,
                 )
+                
+                from multiprocessing import Pool
+                from quantization import quantization_greedy_search
+                self.quantize_bits = 4
 
-                ly.append(V)
+                # import pdb
+                # pdb.set_trace()
+                with torch.no_grad():
+                    V = V.detach().numpy()
+
+                    # import timeit
+                    # start = time.time()
+
+                    V_q = np.apply_along_axis(quantization_greedy_search, 0, V)
+
+                    # V_q = np.zeros(list(V.shape))
+                    # for i in range(V.shape[0]):
+                    #     # print(i)
+                    #     import pdb
+                    #     pdb.set_trace()
+                    #     V_q[i] = quantization_greedy_search(V[i])
+                    #     # print(i, "end")
+
+                    # end = time.time()
+                    # print(end - start)
+
+                ly.append(torch.tensor(V_q))
 
         # print(ly)
         return ly
@@ -810,7 +835,8 @@ def inference(
 
                 mbs_test = T_test.shape[0]  # = mini_batch_size except last
                 A_test = np.sum((np.round(S_test, 0) == T_test).astype(np.uint8))
-
+                # import pdb
+                # pdb.set_trace()
                 test_accu += A_test
                 test_samp += mbs_test
 
